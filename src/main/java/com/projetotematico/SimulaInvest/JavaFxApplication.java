@@ -18,16 +18,11 @@ public class JavaFxApplication extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        // Aqui você carregará a sua primeira tela FXML (ex: Tela de Login do MVP)
-        // E passará o springContext para o FXMLLoader, permitindo a injeção de dependências.
-
-        // Exemplo simplificado de emissão de evento de inicialização de UI:
         springContext.publishEvent(new StageReadyEvent(primaryStage));
     }
 
     @Override
     public void stop() {
-        // Garante que o Spring feche corretamente quando a janela do JavaFX for fechada
         springContext.close();
         Platform.exit();
     }
