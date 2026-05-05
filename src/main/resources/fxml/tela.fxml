@@ -1,9 +1,67 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.layout.VBox?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
 
-<VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
-    <Label text="Bem-vindo ao SimulaInvest!" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
-    <Label text="A interface gráfica está ligada ao Spring Boot com sucesso."/>
+<VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.projetotematico.SimulaInvest.controller.SimulacaoController">
+    <padding>
+        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+    </padding>
+
+    <Label style="-fx-font-size: 24px; -fx-font-weight: bold;" text="SimulaInvest"/>
+    <Label text="Preencha os dados para calcular o seu rendimento" textFill="#666666"/>
+
+    <GridPane alignment="CENTER" hgap="15.0" vgap="15.0">
+        <Label text="Capital Inicial (R$):" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+        <TextField fx:id="txtCapitalInicial" promptText="Ex: 1000.00" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+        <Label text="Aporte Mensal (R$):" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+        <TextField fx:id="txtAporteMensal" promptText="Ex: 200.00" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+        <Label text="Prazo (Meses):" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+        <TextField fx:id="txtPrazo" promptText="Ex: 12" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+        <Label text="Rentabilidade Mensal (%):" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+        <TextField fx:id="txtRentabilidade" promptText="Ex: 1.0" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+    </GridPane>
+
+    <Button onAction="#onCalcularRendimentoClicado" style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20;" text="CALCULAR RENDIMENTO" />
+
+    <Separator prefWidth="200.0" />
+
+    <VBox alignment="CENTER" spacing="10.0">
+        <Label style="-fx-font-size: 18px; -fx-font-weight: bold;" text="Resultados da Simulação"/>
+
+        <HBox alignment="CENTER" spacing="15.0">
+            <VBox alignment="CENTER" prefWidth="120.0" style="-fx-background-color: #e3f2fd; -fx-background-radius: 5; -fx-padding: 10;">
+                <Label text="Valor Bruto" textFill="#1565c0"/>
+                <Label fx:id="lblValorTotalBruto" style="-fx-font-weight: bold;" text="R$ 0,00"/>
+            </VBox>
+            <VBox alignment="CENTER" prefWidth="120.0" style="-fx-background-color: #e8f5e9; -fx-background-radius: 5; -fx-padding: 10;">
+                <Label text="Valor Investido" textFill="#2e7d32"/>
+                <Label fx:id="lblValorInvestido" style="-fx-font-weight: bold;" text="R$ 0,00"/>
+            </VBox>
+            <VBox alignment="CENTER" prefWidth="120.0" style="-fx-background-color: #fff3e0; -fx-background-radius: 5; -fx-padding: 10;">
+                <Label text="Total de Juros" textFill="#ef6c00"/>
+                <Label fx:id="lblValorTotalJuros" style="-fx-font-weight: bold;" text="R$ 0,00"/>
+            </VBox>
+        </HBox>
+
+        <HBox alignment="CENTER" spacing="15.0">
+            <VBox alignment="CENTER" prefWidth="120.0" style="-fx-background-color: #ffebee; -fx-background-radius: 5; -fx-padding: 10;">
+                <Label text="Imposto Pago" textFill="#c62828"/>
+                <Label fx:id="lblValorPagoIR" style="-fx-font-weight: bold;" text="R$ 0,00"/>
+            </VBox>
+            <VBox alignment="CENTER" prefWidth="120.0" style="-fx-background-color: #f3e5f5; -fx-background-radius: 5; -fx-padding: 10;">
+                <Label text="Valor Líquido" textFill="#6a1b9a"/>
+                <Label fx:id="lblValorTotalLiquido" style="-fx-font-size: 14px; -fx-font-weight: bold;" text="R$ 0,00"/>
+            </VBox>
+        </HBox>
+    </VBox>
 </VBox>
