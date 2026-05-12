@@ -12,22 +12,25 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import org.springframework.stereotype.Controller;
+import javafx.stage.FileChooser;
+import java.io.File;
+import java.io.PrintWriter;
 
 @Controller
 public class SimulacaoController {
 
     private final SimulacaoService simulacaoService;
 
+    private Simulacao simulacaoAtual;
+
     public SimulacaoController(SimulacaoService simulacaoService) {
         this.simulacaoService = simulacaoService;
     }
-
 
     @FXML private TextField txtCapitalInicial;
     @FXML private TextField txtAporteMensal;
     @FXML private TextField txtPrazo;
     @FXML private TextField txtRentabilidade;
-
 
     @FXML private Label lblValorTotalBruto;
     @FXML private Label lblValorInvestido;
@@ -60,6 +63,9 @@ public class SimulacaoController {
 
             Simulacao simulacaoCalculada = simulacaoService.calcularEGravarSimulacao(novaSimulacao);
 
+            // --- LÓGICA COLOCADA DENTRO DO MÉTODO APÓS O CÁLCULO ---
+            this.simulacaoAtual = simulacaoCalculada;
+
             // Atualiza os Cards
             lblValorTotalBruto.setText("R$ " + simulacaoCalculada.getResumoResultado().getValorTotalBruto());
             lblValorInvestido.setText("R$ " + simulacaoCalculada.getResumoResultado().getValorInvestido());
@@ -75,6 +81,42 @@ public class SimulacaoController {
 
         } catch (Exception e) {
             System.out.println("Ocorreu um erro ao calcular: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    public void onExportarDadosClicado() {
+        if (simulacaoAtual == null || simulacaoAtual.getProjecoesMensais() == null) {
+            System.out.println("Nenhuma simulação para exportar!");
+            return;
+        }
+
+        // Abre a janela para o utilizador escolher onde guardar o ficheiro
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Guardar Exportação");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Ficheiro CSV", "*.csv"));
+        fileChooser.setInitialFileName("SimulaInvest_Exportacao.csv");
+
+        File file = fileChooser.showSaveDialog(null);
+
+        if (file != null) {
+            try (PrintWriter writer = new PrintWriter(file, "UTF-8")) {
+                // Escreve o cabeçalho
+                writer.println("Mês,Juros do Mês,Total Investido,Total Acumulado");
+
+                // Escreve as linhas da tabela
+                for (ProjecaoMensal p : simulacaoAtual.getProjecoesMensais()) {
+                    writer.println(
+                            p.getMesReferencia() + "," +
+                                    p.getValorJurosDoMes().replace(",", ".") + "," +
+                                    p.getTotalInvestido().replace(",", ".") + "," +
+                                    p.getTotalAcumulado().replace(",", ".")
+                    );
+                }
+                System.out.println("Ficheiro exportado com sucesso para: " + file.getAbsolutePath());
+            } catch (Exception e) {
+                System.out.println("Erro ao exportar: " + e.getMessage());
+            }
         }
     }
 }

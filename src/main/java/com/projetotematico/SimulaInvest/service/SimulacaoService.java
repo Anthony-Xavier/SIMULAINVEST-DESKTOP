@@ -44,29 +44,38 @@ public class SimulacaoService {
             totalAcumulado += aporteMensal;
             totalInvestido += aporteMensal;
 
-            // Cria a "linha" da tabela para este mês
             ProjecaoMensal ponto = new ProjecaoMensal();
             ponto.setMesReferencia(i);
-            // O String.format("%.2f", valor) garante que salvemos com apenas 2 casas decimais (ex: 1500,50)
+
             ponto.setTotalAcumulado(String.format("%.2f", totalAcumulado));
             ponto.setTotalInvestido(String.format("%.2f", totalInvestido));
             ponto.setValorJurosDoMes(String.format("%.2f", jurosDoMes));
 
-            // Relaciona com a simulação principal e guarda na lista
             ponto.setSimulacao(simulacao);
             projecoes.add(ponto);
         }
 
-        // Atribui a lista de meses calculada à simulação
         simulacao.setProjecoesMensais(projecoes);
 
-        // Preencher o Resumo
         ResumoResultado resumo = new ResumoResultado();
         resumo.setValorTotalBruto(String.format("%.2f", totalAcumulado));
         resumo.setValorInvestido(String.format("%.2f", totalInvestido));
-        resumo.setValorTotalJuros(String.format("%.2f", totalAcumulado - totalInvestido));
 
-        //Relaciona o resumo com a simulação principal
+        double totalJuros = totalAcumulado - totalInvestido;
+        resumo.setValorTotalJuros(String.format("%.2f", totalJuros));
+
+        // Pega a porcentagem com base no prazo
+        double aliquota = calcularAliquotaIR(meses);
+
+        // O imposto é cobrado apenas sobre o lucro
+        double valorImposto = totalJuros * aliquota;
+
+        // O que sobra pra você no final
+        double valorLiquido = totalAcumulado - valorImposto;
+
+        resumo.setValorPagoIR(String.format("%.2f", valorImposto));
+        resumo.setValorTotalLiquido(String.format("%.2f", valorLiquido));
+
         resumo.setSimulacao(simulacao);
         simulacao.setResumoResultado(resumo);
 
@@ -78,4 +87,13 @@ public class SimulacaoService {
     public List<Simulacao> listarHistorico() {
         return simulacaoRepository.findAll();
     }
+
+    private double calcularAliquotaIR(int prazoMeses) {
+        if (prazoMeses <= 6) return 0.225;
+        if (prazoMeses <= 12) return 0.20;
+        if (prazoMeses <= 24) return 0.175;
+        return 0.15;
+    }
+
+
 }
