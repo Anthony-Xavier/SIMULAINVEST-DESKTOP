@@ -18,7 +18,7 @@ public class ProjecaoMensal {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Integer mesReferencia; // 1, 2, 3...
+    private Integer mesReferencia;
 
     private String valorJurosDoMes;
 
