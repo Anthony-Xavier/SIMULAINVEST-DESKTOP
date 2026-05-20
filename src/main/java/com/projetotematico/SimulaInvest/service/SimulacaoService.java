@@ -3,97 +3,101 @@ package com.projetotematico.SimulaInvest.service;
 import com.projetotematico.SimulaInvest.domain.entity.ProjecaoMensal;
 import com.projetotematico.SimulaInvest.domain.entity.ResumoResultado;
 import com.projetotematico.SimulaInvest.domain.entity.Simulacao;
-import com.projetotematico.SimulaInvest.repostirory.SimulacaoRepository;
+import com.projetotematico.SimulaInvest.domain.entity.Usuario;
+import com.projetotematico.SimulaInvest.repository.SimulacaoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Lógica de cálculo de juros compostos e persistência da simulação.
+ * Usa BigDecimal para garantir precisão (RNF 3 - Confiabilidade).
+ */
 @Service
 public class SimulacaoService {
 
+    private static final int ESCALA = 8;
+
     private final SimulacaoRepository simulacaoRepository;
 
-    // Injeção de dependência do repositório
     public SimulacaoService(SimulacaoRepository simulacaoRepository) {
         this.simulacaoRepository = simulacaoRepository;
     }
 
     @Transactional
-    public Simulacao calcularEGravarSimulacao(Simulacao simulacao) {
+    public Simulacao calcularEGravarSimulacao(Simulacao simulacao, Usuario usuarioLogado) {
+        if (simulacao.getCapitalInicial() == null
+                || simulacao.getAporteMensal() == null
+                || simulacao.getPrazoMeses() == null
+                || simulacao.getTaxaRentabilidade() == null) {
+            throw new IllegalArgumentException("Parâmetros da simulação incompletos.");
+        }
 
-        //Extrair os valores da simulacao
-        double capital = Double.parseDouble(simulacao.getCapitalInicial());
-        double aporteMensal = Double.parseDouble(simulacao.getAporteMensal());
-        double taxa = simulacao.getTaxaRentabilidade() / 100.0;
+        BigDecimal capital = simulacao.getCapitalInicial();
+        BigDecimal aporteMensal = simulacao.getAporteMensal();
+        BigDecimal taxa = BigDecimal.valueOf(simulacao.getTaxaRentabilidade())
+                .divide(BigDecimal.valueOf(100), ESCALA, RoundingMode.HALF_UP);
         int meses = simulacao.getPrazoMeses();
 
-        // Variáveis de controle para o cálculo
-        double totalAcumulado = capital;
-        double totalInvestido = capital;
+        BigDecimal totalAcumulado = capital;
+        BigDecimal totalInvestido = capital;
+        BigDecimal totalJurosAcumulado = BigDecimal.ZERO;
         List<ProjecaoMensal> projecoes = new ArrayList<>();
 
-        // Matemática: Loop de Juros Compostos mês a mês
         for (int i = 1; i <= meses; i++) {
-            // Calcula o rendimento do mês e soma ao acumulado
-            double jurosDoMes = totalAcumulado * taxa;
-            totalAcumulado += jurosDoMes;
+            BigDecimal jurosDoMes = totalAcumulado.multiply(taxa)
+                    .setScale(ESCALA, RoundingMode.HALF_UP);
 
-            // Adiciona o aporte mensal que o usuário informou
-            totalAcumulado += aporteMensal;
-            totalInvestido += aporteMensal;
+            totalAcumulado = totalAcumulado.add(jurosDoMes).add(aporteMensal);
+            totalInvestido = totalInvestido.add(aporteMensal);
+            totalJurosAcumulado = totalJurosAcumulado.add(jurosDoMes);
 
             ProjecaoMensal ponto = new ProjecaoMensal();
             ponto.setMesReferencia(i);
-
-            ponto.setTotalAcumulado(String.format("%.2f", totalAcumulado));
-            ponto.setTotalInvestido(String.format("%.2f", totalInvestido));
-            ponto.setValorJurosDoMes(String.format("%.2f", jurosDoMes));
-
+            ponto.setValorJurosDoMes(jurosDoMes.setScale(2, RoundingMode.HALF_UP));
+            ponto.setTotalInvestido(totalInvestido.setScale(2, RoundingMode.HALF_UP));
+            ponto.setTotalJurosAcumulado(totalJurosAcumulado.setScale(2, RoundingMode.HALF_UP));
+            ponto.setTotalAcumulado(totalAcumulado.setScale(2, RoundingMode.HALF_UP));
             ponto.setSimulacao(simulacao);
             projecoes.add(ponto);
         }
 
         simulacao.setProjecoesMensais(projecoes);
+        simulacao.setUsuario(usuarioLogado);
+        if (simulacao.getDataSimulacao() == null) {
+            simulacao.setDataSimulacao(LocalDateTime.now());
+        }
+
+        BigDecimal totalJuros = totalAcumulado.subtract(totalInvestido);
+        BigDecimal aliquota = calcularAliquotaIR(meses);
+        BigDecimal valorImposto = totalJuros.multiply(aliquota);
+        BigDecimal valorLiquido = totalAcumulado.subtract(valorImposto);
 
         ResumoResultado resumo = new ResumoResultado();
-        resumo.setValorTotalBruto(String.format("%.2f", totalAcumulado));
-        resumo.setValorInvestido(String.format("%.2f", totalInvestido));
-
-        double totalJuros = totalAcumulado - totalInvestido;
-        resumo.setValorTotalJuros(String.format("%.2f", totalJuros));
-
-        // Pega a porcentagem com base no prazo
-        double aliquota = calcularAliquotaIR(meses);
-
-        // O imposto é cobrado apenas sobre o lucro
-        double valorImposto = totalJuros * aliquota;
-
-        // O que sobra pra você no final
-        double valorLiquido = totalAcumulado - valorImposto;
-
-        resumo.setValorPagoIR(String.format("%.2f", valorImposto));
-        resumo.setValorTotalLiquido(String.format("%.2f", valorLiquido));
-
+        resumo.setValorTotalBruto(totalAcumulado.setScale(2, RoundingMode.HALF_UP));
+        resumo.setValorInvestido(totalInvestido.setScale(2, RoundingMode.HALF_UP));
+        resumo.setValorTotalJuros(totalJuros.setScale(2, RoundingMode.HALF_UP));
+        resumo.setValorPagoIR(valorImposto.setScale(2, RoundingMode.HALF_UP));
+        resumo.setValorTotalLiquido(valorLiquido.setScale(2, RoundingMode.HALF_UP));
         resumo.setSimulacao(simulacao);
         simulacao.setResumoResultado(resumo);
 
-        //Salvar no banco
         return simulacaoRepository.save(simulacao);
     }
 
-    // Método para listar o histórico na tela inicial
     public List<Simulacao> listarHistorico() {
         return simulacaoRepository.findAll();
     }
 
-    private double calcularAliquotaIR(int prazoMeses) {
-        if (prazoMeses <= 6) return 0.225;
-        if (prazoMeses <= 12) return 0.20;
-        if (prazoMeses <= 24) return 0.175;
-        return 0.15;
+    private BigDecimal calcularAliquotaIR(int prazoMeses) {
+        if (prazoMeses <= 6) return new BigDecimal("0.225");
+        if (prazoMeses <= 12) return new BigDecimal("0.20");
+        if (prazoMeses <= 24) return new BigDecimal("0.175");
+        return new BigDecimal("0.15");
     }
-
-
 }

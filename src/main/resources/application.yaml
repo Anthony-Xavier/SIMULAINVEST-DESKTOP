@@ -4,21 +4,34 @@ spring:
 
   # Configuração de persistência de dados (H2 Database)
   datasource:
-    url: jdbc:h2:file:./data/simulainvestdb
+    url: jdbc:h2:file:./data/simulainvest_v2;AUTO_SERVER=TRUE
     driverClassName: org.h2.Driver
     username: sa
     password: password
 
   jpa:
     hibernate:
-      ddl-auto: update # Atualiza o esquema do banco automaticamente
-    show-sql: true # Mostra os comandos SQL no console
+      # Como mudamos os tipos de várias colunas (String -> BigDecimal criptografado),
+      # use create-drop em desenvolvimento ou apague manualmente o ./data antigo.
+      # Após estabilizar o schema, troque para "update".
+      ddl-auto: update
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
 
-  # Habilita o console do H2 para você visualizar as tabelas no navegador
+  # Console do H2 (acessível em http://localhost:8080/h2-console)
   h2:
     console:
       enabled: true
       path: /h2-console
+
+# Porta do servidor embutido (necessário para o H2 console)
+server:
+  port: 8080
+
+# Chave de criptografia AES. Sobrescreva via variável de ambiente em produção:
+# SIMULAINVEST_CRYPTO_KEY=...
+simulainvest:
+  crypto:
+    key: simulainvest-ucs-projeto-tematico-i-2026

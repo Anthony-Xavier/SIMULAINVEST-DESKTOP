@@ -1,10 +1,13 @@
 package com.projetotematico.SimulaInvest.domain.entity;
 
+import com.projetotematico.SimulaInvest.security.BigDecimalCryptoConverter;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.math.BigDecimal;
 
 @Getter
 @Setter
@@ -18,18 +21,22 @@ public class ProjecaoMensal {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "mes_referencia", nullable = false)
     private Integer mesReferencia;
 
-    private String valorJurosDoMes;
+    @Convert(converter = BigDecimalCryptoConverter.class)
+    private BigDecimal valorJurosDoMes;
 
-    private String totalInvestido; // Aportes somados
+    @Convert(converter = BigDecimalCryptoConverter.class)
+    private BigDecimal totalInvestido;
 
-    private String totalJurosAcumulado;
+    @Convert(converter = BigDecimalCryptoConverter.class)
+    private BigDecimal totalJurosAcumulado;
 
-    private String totalAcumulado; // Montante final do mês
+    @Convert(converter = BigDecimalCryptoConverter.class)
+    private BigDecimal totalAcumulado;
 
     @ManyToOne
     @JoinColumn(name = "simulacao_id")
     private Simulacao simulacao;
-
 }

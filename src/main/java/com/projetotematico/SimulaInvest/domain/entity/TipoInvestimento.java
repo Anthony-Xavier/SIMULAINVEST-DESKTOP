@@ -21,4 +21,7 @@ public class TipoInvestimento {
     @Column(nullable = false, unique = true)
     private String nome; // Ex: "CDB/LC", "LCI/LCA", "Tesouro Direto"
 
+    @ManyToOne
+    @JoinColumn(name = "categoria_id")
+    private Categoria categoria;
 }

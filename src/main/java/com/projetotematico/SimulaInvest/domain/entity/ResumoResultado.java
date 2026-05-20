@@ -1,10 +1,13 @@
 package com.projetotematico.SimulaInvest.domain.entity;
 
+import com.projetotematico.SimulaInvest.security.BigDecimalCryptoConverter;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.math.BigDecimal;
 
 @Getter
 @Setter
@@ -18,19 +21,23 @@ public class ResumoResultado {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Relacionamento 1 para 1: Cada simulação tem exatamente 1 resumo
+    // Relacionamento 1 para 1: cada simulação tem exatamente 1 resumo
     @OneToOne
     @JoinColumn(name = "simulacao_id")
     private Simulacao simulacao;
 
-    private String valorTotalBruto;
+    @Convert(converter = BigDecimalCryptoConverter.class)
+    private BigDecimal valorTotalBruto;
 
-    private String valorInvestido;
+    @Convert(converter = BigDecimalCryptoConverter.class)
+    private BigDecimal valorInvestido;
 
-    private String valorTotalJuros;
+    @Convert(converter = BigDecimalCryptoConverter.class)
+    private BigDecimal valorTotalJuros;
 
-    private String valorPagoIR;
+    @Convert(converter = BigDecimalCryptoConverter.class)
+    private BigDecimal valorPagoIR;
 
-    private String valorTotalLiquido;
-
+    @Convert(converter = BigDecimalCryptoConverter.class)
+    private BigDecimal valorTotalLiquido;
 }
