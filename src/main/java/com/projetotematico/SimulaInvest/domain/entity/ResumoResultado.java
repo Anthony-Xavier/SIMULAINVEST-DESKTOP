@@ -22,8 +22,8 @@ public class ResumoResultado {
     private Long id;
 
     // Relacionamento 1 para 1: cada simulação tem exatamente 1 resumo
-    @OneToOne
-    @JoinColumn(name = "simulacao_id")
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "simulacao_id", unique = true)
     private Simulacao simulacao;
 
     @Convert(converter = BigDecimalCryptoConverter.class)

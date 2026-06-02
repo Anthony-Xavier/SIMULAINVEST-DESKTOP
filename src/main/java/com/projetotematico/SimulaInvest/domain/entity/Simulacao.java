@@ -44,28 +44,28 @@ public class Simulacao {
     @Column(name = "data_simulacao", nullable = false)
     private LocalDateTime dataSimulacao;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id")
     private Usuario usuario;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tipo_investimento_id")
     private TipoInvestimento tipoInvestimento;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "indexador_id")
     private Indexador indexador;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "meta_id")
     private Meta meta;
 
-    @OneToOne(mappedBy = "simulacao", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "simulacao", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private ResumoResultado resumoResultado;
 
-    @OneToMany(mappedBy = "simulacao", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "simulacao", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ProjecaoMensal> projecoesMensais = new ArrayList<>();
 
-    @OneToMany(mappedBy = "simulacao", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "simulacao", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Aporte> aportes = new ArrayList<>();
 }

@@ -46,6 +46,8 @@ public class SimulacaoController {
         telaNavigator.abrirLogin();
     }
 
+    @FXML private Label lblUsuarioLogado;
+
     @FXML private TextField txtCapitalInicial;
     @FXML private TextField txtAporteMensal;
     @FXML private TextField txtPrazo;
@@ -65,10 +67,17 @@ public class SimulacaoController {
 
     @FXML
     public void initialize() {
+        if (authService.getUsuarioLogado() != null) {
+            lblUsuarioLogado.setText("Olá, " + authService.getUsuarioLogado().getNome());
+        }
         colMes.setCellValueFactory(new PropertyValueFactory<>("mesReferencia"));
-        colJuros.setCellValueFactory(new PropertyValueFactory<>("valorJurosDoMes"));
-        colInvestido.setCellValueFactory(new PropertyValueFactory<>("totalInvestido"));
-        colAcumulado.setCellValueFactory(new PropertyValueFactory<>("totalAcumulado"));
+        // Como os valores são BigDecimal, usamos lambdas para formatar em texto BR.
+        colJuros.setCellValueFactory(c ->
+                new javafx.beans.property.SimpleStringProperty(formatBR(c.getValue().getValorJurosDoMes())));
+        colInvestido.setCellValueFactory(c ->
+                new javafx.beans.property.SimpleStringProperty(formatBR(c.getValue().getTotalInvestido())));
+        colAcumulado.setCellValueFactory(c ->
+                new javafx.beans.property.SimpleStringProperty(formatBR(c.getValue().getTotalAcumulado())));
     }
 
     @FXML

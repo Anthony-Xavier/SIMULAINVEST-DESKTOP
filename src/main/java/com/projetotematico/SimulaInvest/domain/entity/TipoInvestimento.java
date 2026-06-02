@@ -21,7 +21,7 @@ public class TipoInvestimento {
     @Column(nullable = false, unique = true)
     private String nome; // Ex: "CDB/LC", "LCI/LCA", "Tesouro Direto"
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "categoria_id")
     private Categoria categoria;
 }

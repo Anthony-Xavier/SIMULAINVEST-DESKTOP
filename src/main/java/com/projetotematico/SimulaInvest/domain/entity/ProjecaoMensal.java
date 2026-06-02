@@ -36,7 +36,7 @@ public class ProjecaoMensal {
     @Convert(converter = BigDecimalCryptoConverter.class)
     private BigDecimal totalAcumulado;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "simulacao_id")
     private Simulacao simulacao;
 }
